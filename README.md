@@ -183,6 +183,23 @@ python clone_voice.py "Custom voice" -v ~/voice-samples/1.wav
 python clone_voice.py -l
 ```
 
+#### Emotion and Pacing Control
+
+```bash
+# Custom emotion settings
+python clone_voice.py "I'm so excited!" -e 0.8 -c 0.3
+
+# Dramatic preset (high emotion, deliberate pacing)
+python clone_voice.py "This is AMAZING!" --dramatic
+
+# Calm preset (low emotion, steady pacing)  
+python clone_voice.py "Everything is peaceful" --calm
+
+# Fine-tune parameters
+# -e/--exaggeration: 0.0-1.0 (higher = more expressive)
+# -c/--cfg: 0.0-1.0 (lower = more dramatic pacing)
+```
+
 #### Interactive Mode
 
 Run without arguments for interactive text-to-speech:
@@ -190,6 +207,11 @@ Run without arguments for interactive text-to-speech:
 ```bash
 python clone_voice.py
 # Then type text and press Enter to hear it spoken
+
+# Interactive commands:
+!exaggeration 0.8   # Set emotion intensity
+!cfg 0.3           # Set pacing/guidance
+!help              # Show available commands
 ```
 
 ### Scripts
@@ -214,6 +236,9 @@ Place your voice samples in `~/voice-samples/` as WAV files. The model will use 
 - 🎵 High-quality speech synthesis
 - 💬 Interactive mode for real-time TTS
 - 📂 Automatic voice sample detection
+- 🎆 Dynamic emotion control (exaggeration)
+- ⏱️ Adjustable pacing (CFG weight)
+- 🎨 Preset modes for dramatic and calm speech
 
 ## Additional Resources
 
