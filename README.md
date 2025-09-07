@@ -214,16 +214,14 @@ python clone_voice.py
 !help              # Show available commands
 ```
 
-### Scripts
+### Script
 
-- **`clone_voice.py`** - Main interactive script for voice cloning
-  - Plays audio by default (no file saved)
-  - Use `-o` flag to save output
-  - Supports interactive mode for continuous TTS
-  
-- **`voice_clone.py`** - Batch processing script
-  - Generates multiple test samples
-  - Good for testing different voices
+**`clone_voice.py`** - Complete voice cloning tool with:
+  - Audio playback by default (no file saved)
+  - Optional file saving with `-o` flag
+  - Interactive mode for continuous TTS
+  - Dynamic emotion and pacing controls
+  - Preset modes for quick access
 
 ### Voice Samples
 
