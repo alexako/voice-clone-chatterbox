@@ -1,0 +1,32 @@
+# Core PyTorch with CUDA 12.8 support for RTX 5070 Ti
+--index-url https://download.pytorch.org/whl/cu128
+torch==2.8.0+cu128
+torchaudio==2.8.0+cu128
+torchvision==0.23.0+cu128
+
+# Chatterbox TTS
+chatterbox-tts==0.1.4
+
+# Audio processing
+librosa==0.11.0
+soundfile>=0.13.1
+scipy>=1.16.0
+numpy<1.26.0,>=1.24.0
+
+# ML libraries
+transformers>=4.46.0
+accelerate>=1.10.0
+datasets>=4.0.0
+diffusers==0.29.0
+safetensors>=0.5.0
+
+# Tokenization
+s3tokenizer
+conformer
+
+# Watermarking
+resemble-perth==1.0.1
+
+# Utils
+tqdm>=4.67.0
+einops
