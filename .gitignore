@@ -94,3 +94,4 @@ secrets.yaml
 test_*.wav
 output_*.wav
 saved_audio.wav
+.gemini-project-config
