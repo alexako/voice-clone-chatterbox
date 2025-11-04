@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# alexsay - System-wide command for text-to-speech with Alex's voice
+# Usage: alexsay "text to speak"
+
+# Path to the voice cloning script
+SCRIPT_PATH="/home/alex/Code/voice-clone/clone_voice.py"
+
+# Use the specific Python with chatterbox installed
+PYTHON_PATH="/home/alex/.pyenv/versions/3.11.13/bin/python3"
+
+# Default voice sample (using the first available sample)
+# You can change this to any of the numbered samples (1.wav through 8.wav)
+VOICE_SAMPLE="/home/alex/voice-samples/1.wav"
+
+# Check if text is provided via stdin
+if [ -p /dev/stdin ]; then
+    TEXT=$(cat)
+elif [ $# -eq 0 ]; then
+    echo "Usage: alexsay \"text to speak\""
+    echo ""
+    echo "Options:"
+    echo "  alexsay \"text\"           - Speak with default settings"
+    echo "  alexsay -d \"text\"       - Dramatic voice (more expressive)"
+    echo "  alexsay -c \"text\"       - Calm voice (more subdued)"
+    echo "  alexsay -o file.wav \"text\" - Save to file"
+    echo "  alexsay -i              - Interactive mode"
+    exit 1
+fi
+
+# Check for interactive mode
+if [ "$1" == "-i" ] || [ "$1" == "--interactive" ]; then
+    exec "$PYTHON_PATH" "$SCRIPT_PATH" -v "$VOICE_SAMPLE"
+fi
+
+# Parse options
+EXTRA_ARGS=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -d|--dramatic)
+            EXTRA_ARGS="$EXTRA_ARGS --dramatic"
+            shift
+            ;;
+        -c|--calm)
+            EXTRA_ARGS="$EXTRA_ARGS --calm"
+            shift
+            ;;
+        -o|--output)
+            EXTRA_ARGS="$EXTRA_ARGS -o $2"
+            shift 2
+            ;;
+        *)
+            # This should be the text, but only if not already set by stdin
+            if [ -z "$TEXT" ]; then
+                TEXT="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+# If TEXT is still empty after parsing options, it means no text was provided
+# either via stdin or command line arguments (excluding options).
+# This case should ideally be caught by the initial check, but as a safeguard:
+if [ -z "$TEXT" ]; then
+    echo "Error: No text provided to speak." >&2
+    exit 1
+fi
+
+# Create a temporary directory for audio chunks
+TEMP_AUDIO_DIR=$(mktemp -d)
+if [ ! -d "$TEMP_AUDIO_DIR" ]; then
+    echo "Error: Could not create temporary directory." >&2
+    exit 1
+fi
+
+# Trap to clean up temporary directory on exit
+trap "rm -rf '$TEMP_AUDIO_DIR'" EXIT
+
+SENTENCES="$(echo -n "$TEXT" | grep -o '[^.!?]*[.!?]')"
+MAX_CHUNK_LENGTH=250
+PIDS=()
+AUDIO_FILES=()
+
+# If no sentences were found, just run the original text and exit
+if [ -z "$SENTENCES" ]; then
+    AUDIO_FILE="$TEMP_AUDIO_DIR/single_chunk.wav"
+    "$PYTHON_PATH" "$SCRIPT_PATH" -v "$VOICE_SAMPLE" $EXTRA_ARGS "$TEXT" --no-play -o "$AUDIO_FILE"
+    AUDIO_FILES+=("$AUDIO_FILE")
+else
+    sentence_chunk=""
+    CHUNK_INDEX=0
+
+    while IFS= read -r sentence; do
+        # Check if adding the next sentence would exceed the max length
+        if [ $((${#sentence_chunk} + ${#sentence})) -gt $MAX_CHUNK_LENGTH ]; then
+            if [ -n "$sentence_chunk" ]; then
+                AUDIO_FILE="$TEMP_AUDIO_DIR/chunk_${CHUNK_INDEX}.wav"
+                "$PYTHON_PATH" "$SCRIPT_PATH" -v "$VOICE_SAMPLE" $EXTRA_ARGS "$sentence_chunk" --no-play -o "$AUDIO_FILE"
+                AUDIO_FILES+=("$AUDIO_FILE")
+                ((CHUNK_INDEX++))
+            fi
+            sentence_chunk="$sentence "
+        else
+            sentence_chunk+="$sentence "
+        fi
+    done <<< "$SENTENCES"
+
+    # Process the last remaining chunk
+    if [ -n "$sentence_chunk" ]; then
+        AUDIO_FILE="$TEMP_AUDIO_DIR/chunk_${CHUNK_INDEX}.wav"
+        "$PYTHON_PATH" "$SCRIPT_PATH" -v "$VOICE_SAMPLE" $EXTRA_ARGS "$sentence_chunk" --no-play -o "$AUDIO_FILE"
+        AUDIO_FILES+=("$AUDIO_FILE")
+    fi
+fi
+
+# Concatenate all audio files using sox
+if [ ${#AUDIO_FILES[@]} -gt 0 ]; then
+    # Sort the files to ensure correct order before concatenation
+    sorted_files=($(for f in "${AUDIO_FILES[@]}"; do echo "$f"; done | sort -V))
+
+    FINAL_AUDIO_FILE="$TEMP_AUDIO_DIR/final_output.wav"
+    sox "${sorted_files[@]}" "$FINAL_AUDIO_FILE"
+
+    # Play the final combined audio file
+    if command -v aplay &> /dev/null; then
+        aplay "$FINAL_AUDIO_FILE"
+    else
+        echo "Warning: aplay not found. Cannot play audio." >&2
+    fi
+fi

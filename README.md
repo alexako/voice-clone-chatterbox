@@ -202,16 +202,17 @@ python clone_voice.py "Everything is peaceful" --calm
 
 #### Interactive Mode
 
-Run without arguments for interactive text-to-speech:
+Run without arguments for interactive text-to-speech. In this mode, you can dynamically adjust the `exaggeration` and `cfg` parameters on the fly to fine-tune the voice output.
 
 ```bash
 python clone_voice.py
 # Then type text and press Enter to hear it spoken
 
 # Interactive commands:
-!exaggeration 0.8   # Set emotion intensity
-!cfg 0.3           # Set pacing/guidance
-!help              # Show available commands
+!exaggeration <value>   # Set emotion intensity (0.0-1.0, e.g., !exaggeration 0.8)
+!cfg <value>            # Set pacing/guidance (0.0-1.0, e.g., !cfg 0.3)
+!help                   # Show available commands
+!quit or !exit          # Exit interactive mode
 ```
 
 ### Script
