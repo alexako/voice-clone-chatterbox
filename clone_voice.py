@@ -83,7 +83,7 @@ class VoiceCloner:
         if play_audio:
             print("🔊 Playing audio...")
             try:
-                subprocess.run(["aplay", audio_file], check=True, capture_output=True)
+                subprocess.run(["ffplay", "-nodisp", "-autoexit", audio_file], check=True, capture_output=True)
                 print("✅ Playback complete")
             except subprocess.CalledProcessError:
                 print("⚠️ Could not play audio (aplay not found or audio system issue)")
